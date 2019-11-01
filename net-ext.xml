@@ -1,0 +1,15 @@
+<network>
+  <name>swarm-external</name>
+  <forward mode='nat'/>
+  <bridge name='virbr_swext' stp='on' delay='0'/>
+  <ip address='192.168.123.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.123.2' end='192.168.123.254'/>
+
+      <host mac='52:54:00:12:30:11' ip='192.168.123.11'/>
+      <host mac='52:54:00:12:30:12' ip='192.168.123.12'/>
+      <host mac='52:54:00:12:30:13' ip='192.168.123.13'/>
+    </dhcp>
+  </ip>
+</network>
+
