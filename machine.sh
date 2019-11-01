@@ -19,10 +19,13 @@ virt-builder \
 	-o ${disk_path}/base-fed30.qcow2 \
 	--format qcow2 \
 	--root-password password:qwerty \
-	--install docker \
-	--selinux-relabel \
 	--firstboot-command '
 systemctl disable --now firewalld
+dnf -y install dnf-plugins-core
+dnf config-manager \
+    --add-repo \
+    https://download.docker.com/linux/fedora/docker-ce.repo
+yum install -y docker-ce
 systemctl enable --now docker
 sleep 1
 docker pull alpine
