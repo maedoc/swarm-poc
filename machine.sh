@@ -12,14 +12,13 @@ mkdir -p ${disk_path}
 virsh destroy swarm_base || true
 virsh undefine swarm_base || true
 
-if [[ ! -f ${disk_path}/base.qcow2 ]]
+if [[ ! -f ${disk_path}/base-fed30.qcow2 ]]
 then
 virt-builder \
-	centos-7.7 \
-	-o ${disk_path}/base.qcow2 \
+	fedora-30 \
+	-o ${disk_path}/base-fed30.qcow2 \
 	--format qcow2 \
 	--root-password password:qwerty \
-	--install epel-release,nfs-utils,psmisc \
 	--install docker \
 	--selinux-relabel \
 	--firstboot-command '
@@ -31,14 +30,16 @@ docker pull nginx
 docker pull python
 shutdown -h now
 '	
-# virt-install \
-# 	--name swarm_base \
-# 	--vcpus 2 \
-# 	--memory 2048 \
-# 	--network default,mac=52:54:00:12:20:11,model=virtio \
-# 	--disk ${disk_path}/base.qcow2 \
-# 	--os-variant rhel7.7 \
-# 	--import
+virt-install \
+	--name swarm_base \
+	--vcpus 2 \
+	--memory 2048 \
+	--network network=swarm-internal,mac=52:54:00:12:20:11,model=virtio \
+	--disk ${disk_path}/base-fed30.qcow2 \
+	--os-variant fedora29 \
+	--import
+# TODO under fed30 shutdown fails?
+virsh undefine swarm_base
 fi
 
  
@@ -52,11 +53,12 @@ do
 	vmname=swarm_${name}
 	virsh destroy $vmname || true
 	rm -f $img
-	qemu-img create -f qcow2 -b ${disk_path}/base.qcow2 $img
+	qemu-img create -f qcow2 -b ${disk_path}/base-fed30.qcow2 $img
 	virt-sysprep -a $img \
 		--hostname ${name} \
 		--run-command 'systemctl enable --now sshd || true' \
 		--run-command "sed -i 's/enforcing/permissive/' /etc/selinux/config" \
+		--run-command "echo \"OPTIONS='--selinux-enabled --log-driver=journald -H unix:// -H tcp://0.0.0.0:2375'\" >> /etc/sysconfig/docker" \
 		--ssh-inject root:file:/home/user/.ssh/id_rsa.pub > ${name}.sysprep.log &
 done
 wait
