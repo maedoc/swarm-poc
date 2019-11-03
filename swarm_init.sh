@@ -16,5 +16,26 @@ done
 
 wait
 
-ssh h1 "docker node ls"
+export DOCKER_HOST=h1
+docker node ls
 
+# to build registry.tar (or other images):
+# docker pull registry:2
+# docker run -d --name registry-export
+# docker export registry-export -o registry.tar
+
+# ensure nodes have registry image
+for h in h{1..3} n{1..4}; do DOCKER_HOST=$h docker import registry.tar registry:2 & done
+wait
+
+# bring up local registry
+docker service create --name registry --publish published=5000,target=5000 registry:2
+
+# import previously 
+for image_name in nginx alpine
+do
+	docker import ${image_name}.tar 127.0.0.1:5000/${image_name}
+	docker push 127.0.0.1:5000/${image_name}
+done
+
+docker stack deploy -c stack1.yml s1

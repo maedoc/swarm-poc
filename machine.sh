@@ -61,10 +61,14 @@ do
 		--hostname ${name} \
 		--run-command 'systemctl enable --now sshd || true' \
 		--run-command "sed -i 's/enforcing/permissive/' /etc/selinux/config" \
-		--run-command "echo \"OPTIONS='--selinux-enabled --log-driver=journald -H unix:// -H tcp://0.0.0.0:2375'\" >> /etc/sysconfig/docker" \
+		--copy-in docker.service:/usr/lib/systemd/system \
+		--run-command 'chown root:root /usr/lib/systemd/system/docker.service' \
+		--run-command 'chmod 644 /usr/lib/systemd/system/docker.service' \
+		--run-command "echo '{\"insecure-registries\": [\"127.0.0.1:5000\"]}' >> /etc/docker/daemon.json" \
 		--ssh-inject root:file:/home/user/.ssh/id_rsa.pub > ${name}.sysprep.log &
 done
 wait
+#		--run-command "echo \"OPTIONS='--selinux-enabled --log-driver=journald -H unix:// -H tcp://0.0.0.0:2375 --experimental'\" >> /etc/sysconfig/docker" \
 # 
 # TODO set hostname in snapshot
 # TODO virt-install w/ dhcp ip entry in virsh

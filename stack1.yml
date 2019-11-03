@@ -2,8 +2,9 @@ version: '3'
 
 services:
   web:
-    image: nginx
+    image: 127.0.0.1:5000/nginx
     ports:
       - "8000:8000"
-  redis:
-    image: redis:alpine
+  top:
+    image: 127.0.0.1:5000/alpine
+    entrypoint: /usr/bin/top
