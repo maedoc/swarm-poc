@@ -44,7 +44,6 @@ virt-install \
 # TODO under fed30 shutdown fails?
 virsh undefine swarm_base
 fi
-
  
 #	--hostname ${name}.${domain} \
 # TODO make qcwo2 snapshot
@@ -60,6 +59,7 @@ do
 	virt-sysprep -a $img \
 		--hostname ${name} \
 		--run-command 'systemctl enable --now sshd || true' \
+		--run-command 'systemctl enable --now firewalld || true' \
 		--run-command "sed -i 's/enforcing/permissive/' /etc/selinux/config" \
 		--copy-in docker.service:/usr/lib/systemd/system \
 		--run-command 'chown root:root /usr/lib/systemd/system/docker.service' \
@@ -69,7 +69,8 @@ do
 done
 wait
 #		--run-command "echo \"OPTIONS='--selinux-enabled --log-driver=journald -H unix:// -H tcp://0.0.0.0:2375 --experimental'\" >> /etc/sysconfig/docker" \
-# 
+
+
 # TODO set hostname in snapshot
 # TODO virt-install w/ dhcp ip entry in virsh
 
